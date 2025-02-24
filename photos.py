@@ -3,21 +3,41 @@ import os
 from PIL import Image, ImageOps
 import random
 import pillow_heif
+import requests
+from dotenv import load_dotenv
+from github import Github
+from github import Auth
+
+load_dotenv()
 
 # Register HEIF opener with PIL
 pillow_heif.register_heif_opener()
 
-st.set_page_config(
-   page_title="Amy&Zach's Photo Wall",
-   page_icon="📷",
-   layout="wide",
-)
+def get_repo_tags():
+    auth = Auth.Token(os.getenv("GITHUB_API_KEY"))
+    g = Github(auth=auth)
+    repo = g.get_repo(os.getenv("GITHUB_REPO"))
+    contents = repo.get_contents("")
+    for content_file in contents:
+        print(content_file)
+    return [content_file.name for content_file in contents if content_file.type == "dir"]
 
-_, header_col, button_col, _  = st.columns([0.1, 0.6, 0.1, 0.1], vertical_alignment="bottom")
-with header_col:
+st.set_page_config(
+    page_title="Amy&Zach's Photo Wall",
+    page_icon="📷",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+tags = get_repo_tags()
+_, page_col, _ = st.columns([0.1, 0.8, 0.1], vertical_alignment="bottom")
+# _, header_col, button_col, _  = st.columns([0.1, 0.6, 0.1, 0.1], vertical_alignment="bottom")
+with page_col:
     st.header("📷 Amy&Zach's Photo Wall 🎈")
-with button_col:
-    random_button = st.button("Random Load")
+    selection = st.segmented_control(
+        label = None, options = tags, selection_mode="single",
+        default = tags[0]
+    )
+
 
 # Get the path to the images folder
 image_folder = os.path.join(os.path.dirname(__file__), 'images')
@@ -26,10 +46,10 @@ image_folder = os.path.join(os.path.dirname(__file__), 'images')
 image_files = [f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.heic'))]
 
 # Add random button
-if random_button:
-    selected_images = random.sample(image_files, min(9, len(image_files)))
-else:
-    selected_images = random.sample(image_files, min(9, len(image_files)))
+# if random_button:
+#     selected_images = random.sample(image_files, min(9, len(image_files)))
+# else:
+selected_images = random.sample(image_files, min(9, len(image_files)))
 
 # Calculate image heights and distribute them evenly across columns
 image_data = []
@@ -66,4 +86,4 @@ with wall:
                     st.image(image, caption=None, use_container_width=True)
                 except Exception as e:
                     st.error(f"Could not load image: {image_file}")
-
+    random_button = st.button("Random Load")

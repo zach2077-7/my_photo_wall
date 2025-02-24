@@ -1,3 +1,6 @@
 streamlit
 pillow
 pillow-heif
+requests
+python-dotenv
+PyGithub
