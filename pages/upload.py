@@ -20,15 +20,24 @@ if not st.session_state.is_authenticated:
             st.error("Incorrect password")
 else:
     st.write("Upload your image to the photo wall")
-    uploaded_file = st.file_uploader("Choose an image", type=['png', 'jpg', 'jpeg', 'gif', 'bmp', 'heic'])
+    uploaded_files = st.file_uploader(
+        "Choose an image", 
+        type=['png', 'jpg', 'jpeg', 'gif', 'bmp', 'heic'],
+        accept_multiple_files=True
+    )
 
-    if uploaded_file is not None:
+    if uploaded_files is not None and len(uploaded_files) > 0:
         # Display the uploaded image
-        st.image(uploaded_file, caption="Preview", use_container_width=True)
+        _, preview, _ = st.columns([0.15, 0.7, 0.15])
+        with preview:
+            cols = st.columns(3)
+            for idx, uploaded_file in enumerate(uploaded_files):
+                with cols[idx % 3]:
+                    st.image(uploaded_file, caption=uploaded_file.name, use_container_width=True)
         
         # Add tag input
         tag = st.text_input("Add a tag for your image", 
-                           placeholder="e.g., nature, family, vacation")
+                           placeholder="e.g., nature")
         
         # Add a button to confirm upload
         if st.button("Upload to Gallery"):
@@ -36,18 +45,24 @@ else:
                 st.warning("Please add a tag for your image")
             else:
                 with st.spinner("Uploading..."):
-                    try:
-                        # Generate new filename with tag and milliseconds timestamp
-                        file_extension = uploaded_file.name.split('.')[-1].lower()
-                        new_filename = f"{time.time_ns()}.{file_extension}"
-                        
-                        # Get the file content
-                        file_content = uploaded_file.getvalue()
-                        success = upload_image(file_content, new_filename, tag)
-                        
-                        if success:
-                            st.success("Image uploaded successfully!")
-                        else:
-                            st.error("Failed to upload image")
-                    except Exception as e:
-                        st.error(f"An error occurred: {str(e)}")
+                    success_count = 0
+                    fail_count = 0
+                    for uploaded_file in uploaded_files:
+                        try:
+                            # Generate new filename with tag and milliseconds timestamp
+                            file_extension = uploaded_file.name.split('.')[-1].lower()
+                            new_filename = f"{time.time_ns()}.{file_extension}"
+                            
+                            # Get the file content
+                            file_content = uploaded_file.getvalue()
+                            if upload_image(file_content, new_filename, tag):
+                                success_count += 1
+                            else:
+                                fail_count += 1
+                        except Exception as e:
+                            st.error(f"Error uploading {uploaded_file.name}: {str(e)}")
+                            fail_count += 1
+                    if success_count > 0:
+                        st.success(f"Successfully uploaded {success_count} images!")
+                    if fail_count > 0:
+                        st.error(f"Failed to upload {fail_count} images")
