@@ -37,7 +37,7 @@ for image_url in selected_images:
     try:
         img = load_image(image_url)
         img = ImageOps.exif_transpose(img)
-        image_data.append((image_url, img.size[1] / img.size[0]))  # Store aspect ratio
+        image_data.append((img, img.size[1] / img.size[0]))  # Store aspect ratio
     except Exception as e:
         print(f"Error loading image {image_url}: {e}")
         st.error(f"Could not load image: {image_url}")
@@ -46,10 +46,10 @@ for image_url in selected_images:
 columns_data = [[], [], []]  # Three columns
 column_heights = [0, 0, 0]
 
-for image_url, aspect_ratio in image_data:
+for img, aspect_ratio in image_data:
     # Find the column with minimum height
     min_height_col = column_heights.index(min(column_heights))
-    columns_data[min_height_col].append(image_url)
+    columns_data[min_height_col].append(img)
     column_heights[min_height_col] += aspect_ratio
 
 # Display images in balanced columns
@@ -58,12 +58,9 @@ with wall:
     cols = st.columns(3)
     for col_idx, column_images in enumerate(columns_data):
         with cols[col_idx]:
-            for image_url in column_images:
+            for img in column_images:
                 try:
-                    response = requests.get(image_url)
-                    image = Image.open(BytesIO(response.content))
-                    image = ImageOps.exif_transpose(image)
-                    st.image(image, caption=None, use_container_width=True)
+                    st.image(img, caption=None, use_container_width=True)
                 except Exception as e:
                     st.error(f"Could not load image: {image_url}")
     random_button = st.button("Random Load")
