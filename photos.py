@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import pillow_heif
 import requests
-from storage import get_tags, get_images
+from storage import get_tags, get_images, load_image
 from PIL import Image, ImageOps
 from io import BytesIO
 
@@ -35,11 +35,11 @@ selected_images = random.sample(images[selection], min(9, len(images[selection])
 image_data = []
 for image_url in selected_images:
     try:
-        response = requests.get(image_url)
-        img = Image.open(BytesIO(response.content))
+        img = load_image(image_url)
         img = ImageOps.exif_transpose(img)
         image_data.append((image_url, img.size[1] / img.size[0]))  # Store aspect ratio
     except Exception as e:
+        print(f"Error loading image {image_url}: {e}")
         st.error(f"Could not load image: {image_url}")
 
 # Distribute images across columns to balance heights
