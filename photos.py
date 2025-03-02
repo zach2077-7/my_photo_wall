@@ -17,7 +17,6 @@ st.set_page_config(
 )
 tags = get_tags()
 images = { tag : get_images(tag) for tag in tags}
-print(images)
 _, page_col, _ = st.columns([0.1, 0.8, 0.1], vertical_alignment="top")
 # _, header_col, button_col, _  = st.columns([0.1, 0.6, 0.1, 0.1], vertical_alignment="bottom")
 with page_col:
@@ -32,35 +31,46 @@ with page_col:
 selected_images = random.sample(images[selection], min(9, len(images[selection])))
 
 # Calculate image heights and distribute them evenly across columns
-image_data = []
-for image_url in selected_images:
-    try:
-        img = load_image(image_url)
-        img = ImageOps.exif_transpose(img)
-        image_data.append((img, img.size[1] / img.size[0]))  # Store aspect ratio
-    except Exception as e:
-        print(f"Error loading image {image_url}: {e}")
-        st.error(f"Could not load image: {image_url}")
+# image_data = []
+# for image_url in selected_images:
+#     try:
+#         img = load_image(image_url)
+#         img = ImageOps.exif_transpose(img)
+#         image_data.append((img, img.size[1] / img.size[0]))  # Store aspect ratio
+#     except Exception as e:
+#         print(f"Error loading image {image_url}: {e}")
+#         st.error(f"Could not load image: {image_url}")
 
-# Distribute images across columns to balance heights
-columns_data = [[], [], []]  # Three columns
-column_heights = [0, 0, 0]
+# # Distribute images across columns to balance heights
+# columns_data = [[], [], []]  # Three columns
+# column_heights = [0, 0, 0]
 
-for img, aspect_ratio in image_data:
-    # Find the column with minimum height
-    min_height_col = column_heights.index(min(column_heights))
-    columns_data[min_height_col].append(img)
-    column_heights[min_height_col] += aspect_ratio
+# for img, aspect_ratio in image_data:
+#     # Find the column with minimum height
+#     min_height_col = column_heights.index(min(column_heights))
+#     columns_data[min_height_col].append(img)
+#     column_heights[min_height_col] += aspect_ratio
 
-# Display images in balanced columns
+# # Display images in balanced columns
+# _, wall, _ = st.columns([0.15, 0.7, 0.15])
+# with wall:
+#     cols = st.columns(3)
+#     for col_idx, column_images in enumerate(columns_data):
+#         with cols[col_idx]:
+#             for img in column_images:
+#                 try:
+#                     st.image(img, caption=None, use_container_width=True)
+#                 except Exception as e:
+#                     st.error(f"Could not load image: {image_url}")
+#     random_button = st.button("Random Load")
 _, wall, _ = st.columns([0.15, 0.7, 0.15])
 with wall:
     cols = st.columns(3)
-    for col_idx, column_images in enumerate(columns_data):
-        with cols[col_idx]:
-            for img in column_images:
-                try:
-                    st.image(img, caption=None, use_container_width=True)
-                except Exception as e:
-                    st.error(f"Could not load image: {image_url}")
+    for image_idx, image_url in enumerate(selected_images):
+        with cols[image_idx % 3]:
+            try:
+                st.image(image_url, caption=None, use_container_width=True)
+            except Exception as e:
+                st.error(f"Could not load image: {image_url}")
     random_button = st.button("Random Load")
+
